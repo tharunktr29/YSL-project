@@ -56,6 +56,11 @@ public class ProductController {
         return productService.getProductsAbovePrice(price);
     }
 
+    @GetMapping("/native/price/{price}")
+    public List<Product> getProductsAbovePriceNative(@PathVariable Double price) {
+        return productService.getProductsAbovePriceNative(price);
+    }
+
     @GetMapping("/names")
     public List<String> getProductNames() {
         return productService.getProductNames();

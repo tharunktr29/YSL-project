@@ -64,10 +64,16 @@ public class ProductService {
                 .toList();
     }
 
+
+    public List<Product> getProductsAbovePriceNative(Double price) {
+        return productRepository.findProductsAbovePriceNative(price);
+    }
+
     public List<String> getProductNames() {
         return productRepository.findAll()
                 .stream()
                 .map(Product::getName)
                 .toList();
     }
+
 }
