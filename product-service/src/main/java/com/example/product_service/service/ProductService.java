@@ -2,6 +2,10 @@ package com.example.product_service.service;
 
 import com.example.product_service.entity.Product;
 import com.example.product_service.repository.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,5 +50,24 @@ public class ProductService {
     public boolean validateStock(Integer productId, Integer requestedQuantity) {
         Product product = getProductById(productId);
         return product.getStock() >= requestedQuantity;
+    }
+
+    public Page<Product> getProductsWithPaginationAndSorting(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return productRepository.findAll(pageable);
+    }
+
+    public List<Product> getProductsAbovePrice(Double price) {
+        return productRepository.findAll()
+                .stream()
+                .filter(product -> product.getPrice() > price)
+                .toList();
+    }
+
+    public List<String> getProductNames() {
+        return productRepository.findAll()
+                .stream()
+                .map(Product::getName)
+                .toList();
     }
 }

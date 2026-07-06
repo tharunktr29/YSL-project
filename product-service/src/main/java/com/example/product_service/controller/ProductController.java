@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.entity.Product;
 import com.example.product_service.service.ProductService;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,5 +41,23 @@ public class ProductController {
     public String deleteProduct(@PathVariable Integer id) {
         productService.deleteProduct(id);
         return "Product deleted successfully with id: " + id;
+    }
+    @GetMapping("/paged")
+    public Page<Product> getProductsWithPaginationAndSorting(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        return productService.getProductsWithPaginationAndSorting(page, size, sortBy);
+    }
+
+    @GetMapping("/filter/price/{price}")
+    public List<Product> getProductsAbovePrice(@PathVariable Double price) {
+        return productService.getProductsAbovePrice(price);
+    }
+
+    @GetMapping("/names")
+    public List<String> getProductNames() {
+        return productService.getProductNames();
     }
 }
