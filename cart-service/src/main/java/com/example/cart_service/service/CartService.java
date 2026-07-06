@@ -5,6 +5,7 @@ import com.example.cart_service.entity.Cart;
 import com.example.cart_service.entity.CartItem;
 import com.example.cart_service.repository.CartItemRepository;
 import com.example.cart_service.repository.CartRepository;
+import com.example.cart_service.kafka.CartEventProducer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -16,13 +17,16 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final WebClient webClient;
+    private final CartEventProducer cartEventProducer;
 
     public CartService(CartRepository cartRepository,
                        CartItemRepository cartItemRepository,
-                       WebClient webClient) {
+                       WebClient webClient,
+                       CartEventProducer cartEventProducer) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.webClient = webClient;
+        this.cartEventProducer = cartEventProducer;
     }
 
     public Cart createCart(Cart cart) {
@@ -55,7 +59,9 @@ public class CartService {
             throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
         }
 
-        return cartItemRepository.save(cartItem);
+        CartItem savedCartItem = cartItemRepository.save(cartItem);
+        cartEventProducer.sendCartItemAddedEvent(savedCartItem);
+        return savedCartItem;
     }
 
     public List<CartItem> getAllCartItems() {
