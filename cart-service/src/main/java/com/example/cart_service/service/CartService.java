@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartService {
@@ -45,23 +46,40 @@ public class CartService {
     public CartItem addCartItem(CartItem cartItem) {
         getCartById(cartItem.getCartId());
 
-        ProductResponse product = webClient.get()
-                .uri("/api/products/" + cartItem.getProductId())
-                .retrieve()
-                .bodyToMono(ProductResponse.class)
-                .block();
+        CompletableFuture<ProductResponse> productFuture = CompletableFuture.supplyAsync(() ->
+                fetchProduct(cartItem.getProductId())
+        );
+
+        CompletableFuture<Boolean> stockValidationFuture = productFuture.thenApplyAsync(product ->
+                validateStock(product, cartItem.getQuantity())
+        );
+
+        ProductResponse product = productFuture.join();
+        Boolean isStockAvailable = stockValidationFuture.join();
 
         if (product == null) {
             throw new RuntimeException("Product not found with id: " + cartItem.getProductId());
         }
 
-        if (product.getStock() < cartItem.getQuantity()) {
+        if (!isStockAvailable) {
             throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
         }
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
         cartEventProducer.sendCartItemAddedEvent(savedCartItem);
         return savedCartItem;
+    }
+
+    private ProductResponse fetchProduct(Integer productId) {
+        return webClient.get()
+                .uri("/api/products/" + productId)
+                .retrieve()
+                .bodyToMono(ProductResponse.class)
+                .block();
+    }
+
+    private boolean validateStock(ProductResponse product, Integer requestedQuantity) {
+        return product != null && product.getStock() >= requestedQuantity;
     }
 
     public List<CartItem> getAllCartItems() {
@@ -72,4 +90,5 @@ public class CartService {
         Cart existingCart = getCartById(id);
         cartRepository.delete(existingCart);
     }
+
 }
