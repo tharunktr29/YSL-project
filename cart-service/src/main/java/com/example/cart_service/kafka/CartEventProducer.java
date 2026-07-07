@@ -1,12 +1,16 @@
 package com.example.cart_service.kafka;
 
 import com.example.cart_service.entity.CartItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CartEventProducer {
+
+    private static final Logger logger = LoggerFactory.getLogger(CartEventProducer.class);
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
@@ -25,6 +29,13 @@ public class CartEventProducer {
                 cartItem.getQuantity()
         );
 
-        kafkaTemplate.send(cartEventsTopic, eventMessage);
+        kafkaTemplate.send(cartEventsTopic, eventMessage)
+                .whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        logger.info("Kafka event published to topic {}: {}", cartEventsTopic, eventMessage);
+                    } else {
+                        logger.error("Kafka publish failed: {}", ex.getMessage());
+                    }
+                });
     }
 }

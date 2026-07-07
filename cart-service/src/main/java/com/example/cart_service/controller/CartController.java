@@ -6,6 +6,7 @@ import com.example.cart_service.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/carts")
@@ -18,7 +19,7 @@ public class CartController {
     }
 
     @PostMapping
-    public Cart createCart(@RequestBody Cart cart) {
+    public Cart createCart(@Valid @RequestBody Cart cart) {
         return cartService.createCart(cart);
     }
 
@@ -33,7 +34,7 @@ public class CartController {
     }
 
     @PostMapping("/items")
-    public CartItem addCartItem(@RequestBody CartItem cartItem) {
+    public CartItem addCartItem(@Valid @RequestBody CartItem cartItem) {
         return cartService.addCartItem(cartItem);
     }
 

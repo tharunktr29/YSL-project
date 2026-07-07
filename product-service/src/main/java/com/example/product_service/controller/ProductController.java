@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
@@ -18,7 +19,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
+    public Product createProduct(@Valid @RequestBody Product product) {
         return productService.createProduct(product);
     }
 
@@ -33,7 +34,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Integer id, @RequestBody Product product) {
+    public Product updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
         return productService.updateProduct(id, product);
     }
 

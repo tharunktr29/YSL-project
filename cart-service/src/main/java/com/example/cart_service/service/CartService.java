@@ -8,7 +8,8 @@ import com.example.cart_service.repository.CartRepository;
 import com.example.cart_service.kafka.CartEventProducer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,6 +20,8 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final WebClient webClient;
     private final CartEventProducer cartEventProducer;
+    private static final Logger logger = LoggerFactory.getLogger(CartService.class);
+
 
     public CartService(CartRepository cartRepository,
                        CartItemRepository cartItemRepository,
@@ -31,6 +34,7 @@ public class CartService {
     }
 
     public Cart createCart(Cart cart) {
+        logger.info("Creating cart for userId: {}", cart.getUserId());
         return cartRepository.save(cart);
     }
 
@@ -42,8 +46,12 @@ public class CartService {
     public List<Cart> getAllCarts() {
         return cartRepository.findAll();
     }
-
     public CartItem addCartItem(CartItem cartItem) {
+        logger.info("Adding productId {} to cartId {} with quantity {}",
+                cartItem.getProductId(),
+                cartItem.getCartId(),
+                cartItem.getQuantity());
+
         getCartById(cartItem.getCartId());
 
         CompletableFuture<ProductResponse> productFuture = CompletableFuture.supplyAsync(() ->
@@ -58,14 +66,18 @@ public class CartService {
         Boolean isStockAvailable = stockValidationFuture.join();
 
         if (product == null) {
+            logger.error("Product not found with id: {}", cartItem.getProductId());
             throw new RuntimeException("Product not found with id: " + cartItem.getProductId());
         }
 
         if (!isStockAvailable) {
+            logger.error("Insufficient stock for product id: {}", cartItem.getProductId());
             throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
         }
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
+        logger.info("Cart item saved with id: {}", savedCartItem.getId());
+
         cartEventProducer.sendCartItemAddedEvent(savedCartItem);
         return savedCartItem;
     }
