@@ -3,11 +3,13 @@ package com.example.cart_service.controller;
 import com.example.cart_service.entity.Cart;
 import com.example.cart_service.entity.CartItem;
 import com.example.cart_service.service.CartService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import jakarta.validation.Valid;
 
+
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/carts")
 public class CartController {
@@ -47,5 +49,11 @@ public class CartController {
     public String deleteCart(@PathVariable Integer id) {
         cartService.deleteCart(id);
         return "Cart deleted successfully with id: " + id;
+    }
+
+    @DeleteMapping("/items/{id}")
+    public String deleteCartItem(@PathVariable Integer id) {
+        cartService.deleteCartItem(id);
+        return "Cart item deleted successfully with id: " + id;
     }
 }

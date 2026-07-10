@@ -103,4 +103,10 @@ public class CartService {
         cartRepository.delete(existingCart);
     }
 
+    public void deleteCartItem(Integer id) {
+        CartItem existingCartItem = cartItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + id));
+        cartItemRepository.delete(existingCartItem);
+    }
+
 }
