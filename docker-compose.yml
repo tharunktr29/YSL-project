@@ -20,7 +20,7 @@ services:
       context: ./product-service
     container_name: product-service
     ports:
-      - "8081:8081"
+      - "18081:8081"
     depends_on:
       - kafka
     environment:
